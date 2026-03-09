@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from '../utils/auth';
 
 export const apiClient = axios.create({
-    baseURL: 'http://localhost:8080/api',
+    baseURL: '/api',
 });
 
 apiClient.interceptors.request.use((config) => {
@@ -19,7 +19,7 @@ async function doRefresh(): Promise<void> {
     const refreshToken = getRefreshToken();
     if (!refreshToken) throw new Error('No refresh token');
 
-    const res = await axios.post('http://localhost:8080/api/auth/refresh', { refreshToken });
+    const res = await axios.post('/api/auth/refresh', { refreshToken });
     setTokens(res.data.accessToken, res.data.refreshToken);
 }
 

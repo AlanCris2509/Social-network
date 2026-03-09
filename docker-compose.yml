@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:17
+    container_name: socialnetwork-db
+    environment:
+      POSTGRES_DB: socialnetwork
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-123456}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d socialnetwork"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./social-network-backend
+    container_name: socialnetwork-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/socialnetwork
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-123456}
+      APP_JWT_SECRET: ${JWT_SECRET:-ThisIsADemoSecretKeyChangeInProd1234}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  frontend:
+    build: ./social-network-frontend
+    container_name: socialnetwork-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
