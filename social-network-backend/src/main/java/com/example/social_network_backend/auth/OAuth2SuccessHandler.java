@@ -22,7 +22,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final UserRepository userRepository;
     private final JwtService jwtService;
 
-    private static final String FRONTEND_CALLBACK_URL = "http://localhost:5173/oauth2/callback";
+    @org.springframework.beans.factory.annotation.Value("${APP_FRONTEND_URL:http://localhost:5173}")
+    private String frontendUrl;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -38,7 +39,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String refreshToken = jwtService.generateRefreshToken(user);
         long expiresIn = jwtService.getAccessTokenExpiryMs();
 
-        String redirectUrl = UriComponentsBuilder.fromUriString(FRONTEND_CALLBACK_URL)
+        String redirectUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth2/callback")
                 .queryParam("accessToken", accessToken)
                 .queryParam("refreshToken", refreshToken)
                 .queryParam("expiresIn", expiresIn)

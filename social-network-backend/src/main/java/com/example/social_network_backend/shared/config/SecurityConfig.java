@@ -25,6 +25,9 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
+    @org.springframework.beans.factory.annotation.Value("${APP_FRONTEND_URL:http://localhost:5173}")
+    private String frontendUrl;
+
     public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter,
                           OAuth2SuccessHandler oAuth2SuccessHandler) {
         this.jwtAuthFilter = jwtAuthFilter;
@@ -64,7 +67,7 @@ public class SecurityConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuth2SuccessHandler)
                         .failureHandler(new SimpleUrlAuthenticationFailureHandler(
-                                "http://localhost:5173/login?error=oauth_failed"
+                                frontendUrl + "/login?error=oauth_failed"
                         ))
                 )
                 .exceptionHandling(ex -> ex
