@@ -11,6 +11,7 @@ import { clearTokens, getRefreshToken } from '../utils/auth';
 
 interface TopNavbarProps {
     user: UserInfo | null;
+    onLoginClick?: () => void;
 }
 
 const SOCIAL_ITEMS = [
@@ -25,7 +26,7 @@ const ECOMMERCE_ITEMS = [
     { sub: 'orders',   label: 'Orders',   Icon: ShoppingCart },
 ] as const;
 
-export default function TopNavbar({ user }: TopNavbarProps) {
+export default function TopNavbar({ user, onLoginClick }: TopNavbarProps) {
     const { isDark, toggle } = useTheme();
     const navigate = useNavigate();
     const location = useLocation();
@@ -47,9 +48,13 @@ export default function TopNavbar({ user }: TopNavbarProps) {
     }, []);
 
     function goToApp(section: string, sub: string) {
-        navigate(`/app?section=${section}&sub=${sub}`);
         setSocialOpen(false);
         setEcommerceOpen(false);
+        if (!user) {
+            onLoginClick?.();
+            return;
+        }
+        navigate(`/app?section=${section}&sub=${sub}`);
     }
 
     async function handleLogout() {
@@ -66,7 +71,7 @@ export default function TopNavbar({ user }: TopNavbarProps) {
     }
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 flex items-center px-5 gap-1">
+        <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 flex items-center px-5 gap-1">
             {/* Logo + Name */}
             <Link to="/" className="flex items-center gap-2 shrink-0 mr-4">
                 <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center">
@@ -174,13 +179,13 @@ export default function TopNavbar({ user }: TopNavbarProps) {
                     </button>
                 </div>
             ) : (
-                <Link
-                    to="/login"
+                <button
+                    onClick={onLoginClick}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-violet-600 hover:bg-violet-700 text-white transition-colors"
                 >
                     <LogIn size={15} />
                     Login
-                </Link>
+                </button>
             )}
         </header>
     );

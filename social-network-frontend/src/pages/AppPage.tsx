@@ -13,12 +13,12 @@ import TopNavbar from '../shared/components/TopNavbar';
 
 export async function loader() {
     const refreshToken = getRefreshToken();
-    if (!refreshToken) return redirect('/login');
+    if (!refreshToken) return redirect('/home');
     try {
         return await getMe();
     } catch {
         clearTokens();
-        return redirect('/login');
+        return redirect('/home');
     }
 }
 

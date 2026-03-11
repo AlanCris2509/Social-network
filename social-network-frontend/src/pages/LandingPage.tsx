@@ -1,20 +1,24 @@
-import { useLoaderData } from 'react-router-dom';
+import { useState } from 'react';
+import { useLoaderData, useRevalidator } from 'react-router-dom';
 import {
     Users, ShoppingBag, MessageSquare, Shield, Zap, Globe, Network, ArrowRight, Star,
 } from 'lucide-react';
 import TopNavbar from '../shared/components/TopNavbar';
+import AuthModal from '../shared/components/AuthModal';
 import type { UserInfo } from '../features/auth/types';
 import { getMe } from '../features/auth/api';
 import { getAccessToken } from '../shared/utils/auth';
 
-export async function loader(): Promise<{ user: UserInfo | null }> {
+export async function loader({ request }: { request: Request }): Promise<{ user: UserInfo | null; oauthError: string | null }> {
+    const url = new URL(request.url);
+    const oauthError = url.searchParams.get('error');
     const token = getAccessToken();
-    if (!token) return { user: null };
+    if (!token) return { user: null, oauthError };
     try {
         const user = await getMe();
-        return { user };
+        return { user, oauthError };
     } catch {
-        return { user: null };
+        return { user: null, oauthError };
     }
 }
 
@@ -77,11 +81,18 @@ const STATS = [
 ];
 
 export default function LandingPage() {
-    const { user } = useLoaderData() as { user: UserInfo | null };
+    const { user, oauthError } = useLoaderData() as { user: UserInfo | null; oauthError: string | null };
+    const revalidator = useRevalidator();
+    const [authOpen, setAuthOpen] = useState(!!oauthError);
+
+    function openAuth() { setAuthOpen(true); }
+    function closeAuth() { setAuthOpen(false); }
+    function handleAuthSuccess() { setAuthOpen(false); revalidator.revalidate(); }
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
-            <TopNavbar user={user} />
+            <TopNavbar user={user} onLoginClick={openAuth} />
+            <AuthModal open={authOpen} onClose={closeAuth} onSuccess={handleAuthSuccess} oauthError={oauthError} />
 
             {/* ── Hero ── */}
             <section className="pt-32 pb-24 px-6 text-center relative overflow-hidden">
@@ -170,13 +181,13 @@ export default function LandingPage() {
                     <p className="text-violet-200 mb-8">
                         Create your account today and start connecting with people who share your interests.
                     </p>
-                    <a
-                        href="/login"
+                    <button
+                        onClick={openAuth}
                         className="inline-flex items-center gap-2 px-8 py-3 bg-white text-violet-700 rounded-xl font-semibold hover:bg-violet-50 transition-colors shadow-lg"
                     >
                         Create Free Account
                         <ArrowRight size={16} />
-                    </a>
+                    </button>
                 </div>
             </section>
 

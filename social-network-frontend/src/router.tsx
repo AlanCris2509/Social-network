@@ -1,5 +1,4 @@
 import { createBrowserRouter, redirect } from 'react-router-dom';
-import LoginPage, { loader as loginLoader } from './features/auth/LoginPage';
 import AppPage, { loader as appLoader } from './pages/AppPage';
 import LandingPage, { loader as landingLoader } from './pages/LandingPage';
 import RouteError from './shared/components/RouteError';
@@ -17,10 +16,12 @@ export const router = createBrowserRouter([
         errorElement: <RouteError />,
     },
     {
+        // Preserve ?error=oauth_failed and similar params coming from the backend
         path: '/login',
-        element: <LoginPage />,
-        loader: loginLoader,
-        errorElement: <RouteError />,
+        loader: ({ request }) => {
+            const { search } = new URL(request.url);
+            return redirect(`/home${search}`);
+        },
     },
     {
         path: '/app',
